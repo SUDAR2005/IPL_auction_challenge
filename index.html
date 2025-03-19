@@ -384,8 +384,7 @@
             <h2><i class="fas fa-chart-line"></i> IPL Player Lineup Mystery</h2>
             <div class="puzzle-content">
                 <p>Determine the correct batting order for the following players:</p>
-                
-                
+                <p>Number of players in the puzzle is 7</p>
                 <p><strong>Hints:</strong></p>
                 <ul class="hint-list">
                     <li>Rohit is not the last in the order.</li>
@@ -585,7 +584,7 @@
 
             // Allow a small margin of error for rounding differences
             if (Math.abs(userRunrate - correctRunrate) < 0.01) {
-                points += 25;
+                points += 20;
                 showResult('runrate-result', 'Correct! The required run rate is ' + correctRunrate + ' runs per over. You earned 25 points!', true);
                 setTimeout(() => {
                     nextPuzzle();
@@ -614,9 +613,23 @@
             
             wordleAttempts = 0;
         }
-
+        function checkValid(word) {
+            return fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
+                .then(response => {
+                    if (response.ok) {
+                        return true; // Word exists
+                    } else {
+                        return false; // Word doesn't exist
+                    }
+                })
+                .catch(error => {
+                    console.error("Error checking word:", error);
+                    return false;
+                });
+        }
+        
         function submitWordle() {
-            const correctWord = "super";
+            const correctWord = "pitch";
             const guess = document.getElementById('wordle-guess').value.trim().toLowerCase();
             
             if (guess.length !== 5) {
@@ -624,30 +637,40 @@
                 return;
             }
             
-            if (guess === correctWord) {
-                updateWordleGrid(guess, wordleAttempts);
-                points += 30;
-                showResult('wordle-result', 'Correct! You solved the IPL Wordle. You earned 30 points!', true);
-                setTimeout(() => {
-                    nextPuzzle();
-                }, 2000);
-            } else {
-                updateWordleGrid(guess, wordleAttempts);
-                wordleAttempts++;
+            // First check if the word is valid
+            checkValid(guess).then(isValid => {
+                if (!isValid) {
+                    // Show "not a valid English word" message but don't update the grid
+                    showResult('wordle-result', 'Not a valid English word!', false);
+                    return;
+                }
                 
-                if (wordleAttempts >= 6) {
-                    showResult('wordle-result', 'You ran out of attempts! The correct word was: SUPER', false);
+                // Only if the word is valid, continue with game logic and update the grid
+                if (guess === correctWord) {
+                    updateWordleGrid(guess, wordleAttempts);
+                    points += 30;
+                    showResult('wordle-result', 'Correct! You solved the IPL Wordle. You earned 30 points!', true);
                     setTimeout(() => {
                         nextPuzzle();
-                    }, 3000);
+                    }, 2000);
                 } else {
-                    document.getElementById('wordle-guess').value = '';
+                    updateWordleGrid(guess, wordleAttempts);
+                    wordleAttempts++;
+                    
+                    if (wordleAttempts >= 6) {
+                        showResult('wordle-result', `You ran out of attempts! The correct word was: ${correctWord.toUpperCase()}`, false);
+                        setTimeout(() => {
+                            nextPuzzle();
+                        }, 3000);
+                    } else {
+                        document.getElementById('wordle-guess').value = '';
+                    }
                 }
-            }
+            });
         }
 
         function updateWordleGrid(guess, attempt) {
-            const correctWord = "super";
+            const correctWord = "pitch";
             
             for (let i = 0; i < 5; i++) {
                 const box = document.getElementById(`wordle-box-${attempt}-${i}`);
