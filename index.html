@@ -287,6 +287,33 @@
             border-color: rgba(255, 255, 255, 0.1);
         }
         
+        .match-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .match-stat {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .match-stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .match-stat-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
         .confetti {
             position: absolute;
             width: 10px;
@@ -326,6 +353,10 @@
                 width: 40px;
                 height: 40px;
                 font-size: 1.5rem;
+            }
+            
+            .match-info {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -376,28 +407,39 @@
             </div>
         </div>
 
-        <!-- Puzzle 2: IPL Budget Allocation -->
-        <div class="puzzle" id="budget-puzzle" style="display: none;">
-            <h2><i class="fas fa-money-bill-wave"></i> IPL Budget Allocation</h2>
+        <!-- Puzzle 2: IPL Required Run Rate Calculator -->
+        <div class="puzzle" id="runrate-puzzle" style="display: none;">
+            <h2><i class="fas fa-calculator"></i> IPL Required Run Rate Challenge</h2>
             <div class="puzzle-content">
-                <p>You have a budget of <strong>₹100 crores</strong> to buy exactly 4 players:</p>
+                <p>Calculate the <strong>required run rate</strong> for the team chasing based on the following match situation:</p>
                 
-                <div class="player-list">
-                    <div class="player-item">Rohit <span class="player-cost">₹30 cr</span></div>
-                    <div class="player-item">Kohli <span class="player-cost">₹35 cr</span></div>
-                    <div class="player-item">Dhoni <span class="player-cost">₹25 cr</span></div>
-                    <div class="player-item">Warner <span class="player-cost">₹20 cr</span></div>
-                    <div class="player-item">Jadeja <span class="player-cost">₹18 cr</span></div>
-                    <div class="player-item">Hardik <span class="player-cost">₹22 cr</span></div>
-                    <div class="player-item">Rahul <span class="player-cost">₹28 cr</span></div>
+                <div class="match-info">
+                    <div class="match-stat">
+                        <span class="match-stat-label">Target Runs</span>
+                        <span class="match-stat-value">450</span>
+                    </div>
+                    <div class="match-stat">
+                        <span class="match-stat-label">Current Score</span>
+                        <span class="match-stat-value">217</span>
+                    </div>
+                    <div class="match-stat">
+                        <span class="match-stat-label">Total Overs</span>
+                        <span class="match-stat-value">50</span>
+                    </div>
+                    <div class="match-stat">
+                        <span class="match-stat-label">Overs Played</span>
+                        <span class="match-stat-value">30</span>
+                    </div>
                 </div>
                 
-                <input id="budget" class="input-field" placeholder="Enter 4 player names (comma-separated, e.g., Rohit, Kohli, Dhoni, Warner)">
-                <div class="result-box" id="budget-result" style="display: none;"></div>
+                <p>What is the <strong>required run rate</strong> to win the match? Round your answer to 2 decimal places.</p>
+                
+                <input id="runrate" class="input-field" placeholder="Enter required run rate (e.g., 9.75)">
+                <div class="result-box" id="runrate-result" style="display: none;"></div>
                 
                 <div class="buttons">
-                    <button class="btn" onclick="submitBudget()">Submit Selection</button>
-                    <button class="btn btn-secondary" onclick="giveUp('budget')">Give Up</button>
+                    <button class="btn" onclick="submitRunrate()">Submit Answer</button>
+                    <button class="btn btn-secondary" onclick="giveUp('runrate')">Give Up</button>
                 </div>
             </div>
         </div>
@@ -452,7 +494,7 @@
         }
         setInterval(updateScoreTime, 1000);
 
-        const puzzles = ["permutation-puzzle", "budget-puzzle", "wordle-cipher", "final-screen"];
+        const puzzles = ["permutation-puzzle", "runrate-puzzle", "wordle-cipher", "final-screen"];
         let currentPuzzleIndex = 0;
 
         function nextPuzzle() {
@@ -476,13 +518,12 @@
 
         function giveUp(puzzleType) {
             let correctAnswer = "";
-            
             if (puzzleType === "permutation") {
                 correctAnswer = "Rohit, Kohli, Dhoni, Rahul, Warner, Hardik, Jadeja";
                 showResult('order-result', 'The correct batting order was: ' + correctAnswer, false);
-            } else if (puzzleType === "budget") {
-                correctAnswer = "Rohit, Dhoni, Warner, Jadeja";
-                showResult('budget-result', 'A correct selection was: ' + correctAnswer, false);
+            } else if (puzzleType === "runrate") {
+                correctAnswer = "11.65";
+                showResult('runrate-result', 'The correct required run rate was: ' + correctAnswer, false);
             } else if (puzzleType === "wordle") {
                 correctAnswer = "SUPER";
                 showResult('wordle-result', 'The correct word was: ' + correctAnswer, false);
@@ -525,39 +566,32 @@
             }
         }
 
-        function submitBudget() {
-            const budgetLimit = 100;
-            const playerCosts = {
-                "Rohit": 30, "Kohli": 35, "Dhoni": 25,
-                "Warner": 20, "Jadeja": 18, "Hardik": 22, "Rahul": 28
-            };
-            const selectedPlayers = document.getElementById('budget').value.split(',').map(p => p.trim());
-
-            if (selectedPlayers.length !== 4) {
-                showResult('budget-result', 'Please select exactly 4 players!', false);
+        function submitRunrate() {
+            const targetRuns = 450;
+            const currentRuns = 217;
+            const totalOvers = 50;
+            const oversPlayed = 30;
+            
+            const remainingRuns = targetRuns - currentRuns;
+            const remainingOvers = totalOvers - oversPlayed;
+            const correctRunrate = (remainingRuns / remainingOvers).toFixed(2);
+            
+            const userRunrate = parseFloat(document.getElementById('runrate').value.trim());
+            
+            if (isNaN(userRunrate)) {
+                showResult('runrate-result', 'Please enter a valid number!', false);
                 return;
             }
 
-            // Check if all players are valid
-            const invalidPlayers = selectedPlayers.filter(p => !playerCosts[capitalizeFirstLetter(p)]);
-            if (invalidPlayers.length > 0) {
-                showResult('budget-result', 'Invalid player(s): ' + invalidPlayers.join(', '), false);
-                return;
-            }
-
-            const normalizedPlayers = selectedPlayers.map(p => capitalizeFirstLetter(p));
-            const totalCost = normalizedPlayers.reduce((sum, player) => sum + (playerCosts[player] || 0), 0);
-
-            if (totalCost === budgetLimit) {
+            // Allow a small margin of error for rounding differences
+            if (Math.abs(userRunrate - correctRunrate) < 0.01) {
                 points += 25;
-                showResult('budget-result', 'Perfect! You spent exactly ₹100 crores. You earned 25 points!', true);
+                showResult('runrate-result', 'Correct! The required run rate is ' + correctRunrate + ' runs per over. You earned 25 points!', true);
                 setTimeout(() => {
                     nextPuzzle();
                 }, 2000);
-            } else if (totalCost < budgetLimit) {
-                showResult('budget-result', `You've only spent ₹${totalCost} crores. You need to spend exactly ₹100 crores.`, false);
             } else {
-                showResult('budget-result', `You've spent ₹${totalCost} crores, which exceeds your budget of ₹100 crores.`, false);
+                showResult('runrate-result', 'Incorrect. Try again!', false);
             }
         }
 
@@ -592,8 +626,8 @@
             
             if (guess === correctWord) {
                 updateWordleGrid(guess, wordleAttempts);
-                points += 25;
-                showResult('wordle-result', 'Correct! You solved the IPL Wordle. You earned 25 points!', true);
+                points += 30;
+                showResult('wordle-result', 'Correct! You solved the IPL Wordle. You earned 30 points!', true);
                 setTimeout(() => {
                     nextPuzzle();
                 }, 2000);
